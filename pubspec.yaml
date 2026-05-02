@@ -1,0 +1,40 @@
+name: prepx
+description: PrepX - AI Mock Interview Platform
+
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+
+  # ── Uncomment when adding Firebase ──────────────────────────────────────────
+  # firebase_core: ^2.32.0
+  # firebase_auth: ^4.20.0
+  # cloud_firestore: ^4.17.5
+  # firebase_storage: ^11.7.7        # for profile picture / resume uploads
+
+  # ── Uncomment for file picker (profile pic / resume) ─────────────────────
+  # file_picker: ^8.1.2
+  # image_picker: ^1.1.2
+
+  # ── Uncomment for Vapi voice integration ─────────────────────────────────
+  # permission_handler: ^11.3.1      # microphone permission
+  # http: ^1.2.2                     # API calls to Vapi / Gemini
+  # web_socket_channel: ^3.0.1       # real-time voice streaming
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/               # for profile pics, interview icons, etc.
+    - assets/audio/                # for storing recorded interview audio (if needed)
