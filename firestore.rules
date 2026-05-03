@@ -1,0 +1,74 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Helper functions ────────────────────────────────────────────────────
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return request.auth.uid == uid;
+    }
+
+    function isValidSession() {
+      let data = request.resource.data;
+      return data.keys().hasAll(['userId', 'jobRole', 'domain', 'difficulty'])
+          && data.userId == request.auth.uid
+          && data.jobRole is string
+          && data.domain in ['technical', 'hr', 'behavioral', 'mixed']
+          && data.difficulty in ['easy', 'medium', 'hard'];
+    }
+
+    // ── users collection ────────────────────────────────────────────────────
+    // Each user can only read/write their own document
+
+    match /users/{uid} {
+      allow read: if isAuthenticated() && isOwner(uid);
+      allow create: if isAuthenticated() && isOwner(uid)
+                    && request.resource.data.email == request.auth.token.email;
+      allow update: if isAuthenticated() && isOwner(uid)
+                    // Cannot change uid or email
+                    && !request.resource.data.diff(resource.data).affectedKeys()
+                        .hasAny(['uid', 'email', 'createdAt']);
+      allow delete: if false; // handled by Cloud Function
+    }
+
+    // ── sessions collection ─────────────────────────────────────────────────
+    // Users can create and read their own sessions
+    // Updates come from both app (status) and Cloud Functions
+
+    match /sessions/{sessionId} {
+      allow read: if isAuthenticated()
+                  && resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() && isValidSession();
+      allow update: if isAuthenticated()
+                    && resource.data.userId == request.auth.uid
+                    // Can only update status, vapiCallId, durationSeconds, endedAt
+                    && request.resource.data.diff(resource.data).affectedKeys()
+                        .hasOnly(['status', 'vapiCallId', 'durationSeconds', 'endedAt']);
+      allow delete: if false;
+    }
+
+    // ── results collection ──────────────────────────────────────────────────
+    // Only Cloud Functions write results (via admin SDK, bypasses rules)
+    // Users can read their own results
+
+    match /results/{sessionId} {
+      allow read: if isAuthenticated()
+                  && resource.data.userId == request.auth.uid;
+      allow write: if false; // Cloud Functions only (admin SDK bypasses this)
+    }
+
+    // ── questions collection ─────────────────────────────────────────────────
+    // All authenticated users can read questions
+    // Only admins can write (use Firebase Console or Cloud Functions)
+
+    match /questions/{questionId} {
+      allow read: if isAuthenticated();
+      allow write: if false; // admin only via Firebase Console
+    }
+  }
+}

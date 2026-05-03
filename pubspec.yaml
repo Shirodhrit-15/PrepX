@@ -1,6 +1,5 @@
 name: prepx
 description: PrepX - AI Mock Interview Platform
-
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -10,22 +9,36 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+
   cupertino_icons: ^1.0.8
 
-  # ── Uncomment when adding Firebase ──────────────────────────────────────────
-  # firebase_core: ^2.32.0
-  # firebase_auth: ^4.20.0
-  # cloud_firestore: ^4.17.5
-  # firebase_storage: ^11.7.7        # for profile picture / resume uploads
+  # Firebase
+  firebase_core: ^2.32.0
+  firebase_auth: ^4.20.0
+  cloud_firestore: ^4.17.5
+  firebase_storage: ^11.7.7
+  cloud_functions: ^4.7.6
 
-  # ── Uncomment for file picker (profile pic / resume) ─────────────────────
-  # file_picker: ^8.1.2
-  # image_picker: ^1.1.2
+  # State management
+  provider: ^6.1.2
 
-  # ── Uncomment for Vapi voice integration ─────────────────────────────────
-  # permission_handler: ^11.3.1      # microphone permission
-  # http: ^1.2.2                     # API calls to Vapi / Gemini
-  # web_socket_channel: ^3.0.1       # real-time voice streaming
+  # File / media
+  file_picker: ^8.1.2
+  image_picker: ^1.1.2
+
+  # API & networking
+  permission_handler: ^11.3.1
+  http: ^1.2.2
+  web_socket_channel: ^3.0.1
+
+  # Utils
+  intl: ^0.19.0
+  uuid: ^4.4.0
+  shared_preferences: ^2.3.2
+  cached_network_image: ^3.4.1
+  flutter_svg: ^2.0.10+1
+  lottie: ^3.1.2
+  google_sign_in: ^6.2.1
 
 dev_dependencies:
   flutter_test:
@@ -34,7 +47,7 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-
   assets:
-    - assets/images/               # for profile pics, interview icons, etc.
-    - assets/audio/                # for storing recorded interview audio (if needed)
+    - assets/images/
+    - assets/audio/
+    - assets/animations/
