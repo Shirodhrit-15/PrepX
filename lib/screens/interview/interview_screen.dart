@@ -24,9 +24,12 @@ class InterviewScreen extends StatefulWidget {
 }
 
 class _InterviewScreenState extends State<InterviewScreen> {
+  bool _hasNavigated = false; // 🔥 prevents multiple navigation
+
   @override
   void initState() {
     super.initState();
+
     // Start interview after first frame
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<InterviewProvider>().startInterview(
@@ -45,10 +48,15 @@ class _InterviewScreenState extends State<InterviewScreen> {
     final interview = context.watch<InterviewProvider>();
     final phase = interview.phase;
 
-    // Navigate to results when done
-    if (phase == InterviewPhase.done &&
+    // 🔥 SAFE NAVIGATION HANDLING
+    if (!_hasNavigated &&
+        phase == InterviewPhase.done &&
         interview.currentResult != null) {
+      _hasNavigated = true;
+
       WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
@@ -57,7 +65,11 @@ class _InterviewScreenState extends State<InterviewScreen> {
             ),
           ),
         );
-        interview.reset();
+
+        // 🔥 delay reset to avoid stream crash
+        Future.microtask(() {
+          interview.reset();
+        });
       });
     }
 
@@ -74,6 +86,20 @@ class _InterviewScreenState extends State<InterviewScreen> {
         backgroundColor: cs.surface,
         appBar: AppBar(
           title: Text(widget.jobRole),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () async {
+              if (phase == InterviewPhase.active) {
+                final confirm = await _showEndDialog(context);
+                if (confirm) {
+                  await interview.endInterview();
+                  if (mounted) Navigator.pop(context);
+                }
+              } else {
+                Navigator.pop(context);
+              }
+            },
+          ),
           actions: [
             if (phase == InterviewPhase.active)
               Padding(
@@ -133,12 +159,12 @@ class _InterviewScreenState extends State<InterviewScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.error_outline_rounded,
-                    size: 60, color: cs.error),
+                Icon(Icons.error_outline_rounded, size: 60, color: cs.error),
                 const SizedBox(height: 16),
-                const Text('Something went wrong',
-                    style: TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.bold)),
+                const Text(
+                  'Something went wrong',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
                 const SizedBox(height: 8),
                 Text(
                   interview.errorMessage ?? 'Unknown error',
@@ -161,7 +187,7 @@ class _InterviewScreenState extends State<InterviewScreen> {
       case InterviewPhase.active:
         return Column(
           children: [
-            // Active indicator
+            // 🔥 Active indicator
             Container(
               width: double.infinity,
               color: cs.primaryContainer,
@@ -171,25 +197,30 @@ class _InterviewScreenState extends State<InterviewScreen> {
                 children: [
                   _PulsingDot(color: cs.primary),
                   const SizedBox(width: 8),
-                  Text('Interview in progress',
-                      style: TextStyle(
-                          color: cs.primary, fontWeight: FontWeight.w600)),
+                  Text(
+                    'Interview in progress',
+                    style: TextStyle(
+                      color: cs.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ],
               ),
             ),
-            // Transcript
+
+            // 🔥 Transcript
             Expanded(
               child: interview.liveTranscript.isEmpty
                   ? Center(
                       child: Text(
                         'The AI interviewer will speak first...',
                         style: TextStyle(
-                            color: cs.onSurface.withOpacity(0.5)),
+                          color: cs.onSurface.withOpacity(0.5),
+                        ),
                       ),
                     )
                   : ListView.builder(
                       padding: const EdgeInsets.all(16),
-                      reverse: false,
                       itemCount: interview.liveTranscript.length,
                       itemBuilder: (_, i) {
                         final msg = interview.liveTranscript[i];
@@ -256,11 +287,18 @@ class _InterviewScreenState extends State<InterviewScreen> {
   }
 }
 
+// ─────────────────────────────────────────────────────────
+// UI COMPONENTS
+// ─────────────────────────────────────────────────────────
+
 class _TranscriptBubble extends StatelessWidget {
   final String role;
   final String text;
 
-  const _TranscriptBubble({required this.role, required this.text});
+  const _TranscriptBubble({
+    required this.role,
+    required this.text,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -288,10 +326,8 @@ class _TranscriptBubble extends StatelessWidget {
               decoration: BoxDecoration(
                 color: isUser ? cs.primary : cs.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(14).copyWith(
-                  bottomRight:
-                      isUser ? Radius.zero : const Radius.circular(14),
-                  bottomLeft:
-                      isUser ? const Radius.circular(14) : Radius.zero,
+                  bottomRight: isUser ? Radius.zero : const Radius.circular(14),
+                  bottomLeft: isUser ? const Radius.circular(14) : Radius.zero,
                 ),
               ),
               child: Text(

@@ -7,7 +7,7 @@ enum VapiCallStatus { idle, connecting, active, ended, error }
 
 class VapiMessage {
   final String type;
-  final String? role;      // 'assistant' | 'user'
+  final String? role;
   final String? content;
   final Map<String, dynamic>? raw;
 
@@ -15,13 +15,14 @@ class VapiMessage {
 }
 
 class VapiService {
-  // Replace with your actual Vapi public key and assistant ID
   static const String _vapiPublicKey = 'YOUR_VAPI_PUBLIC_KEY';
   static const String _assistantId = 'YOUR_VAPI_ASSISTANT_ID';
 
   WebSocketChannel? _channel;
+
   final StreamController<VapiMessage> _messageController =
       StreamController<VapiMessage>.broadcast();
+
   final StreamController<VapiCallStatus> _statusController =
       StreamController<VapiCallStatus>.broadcast();
 
@@ -31,19 +32,20 @@ class VapiService {
   VapiCallStatus _status = VapiCallStatus.idle;
   VapiCallStatus get status => _status;
 
-  // Accumulated transcript
   final List<Map<String, String>> _transcript = [];
   List<Map<String, String>> get transcript => List.unmodifiable(_transcript);
 
-  // ─── Start Call ───────────────────────────────────────────────────────────
+  bool _isDisposed = false;
 
+  // ─── START INTERVIEW ──────────────────────────────────────────────────────
   Future<String?> startInterview({
     required String jobRole,
     required String domain,
     required String difficulty,
     String? resumeContext,
   }) async {
-    // 1. Request microphone permission
+    if (_isDisposed) return null;
+
     final micStatus = await Permission.microphone.request();
     if (!micStatus.isGranted) {
       _emitStatus(VapiCallStatus.error);
@@ -54,12 +56,10 @@ class VapiService {
     _transcript.clear();
 
     try {
-      // 2. Open WebSocket to Vapi
       _channel = WebSocketChannel.connect(
         Uri.parse('wss://api.vapi.ai/call/web'),
       );
 
-      // 3. Send start message with assistant configuration
       final startPayload = jsonEncode({
         'type': 'start',
         'publicKey': _vapiPublicKey,
@@ -71,19 +71,19 @@ class VapiService {
             'difficulty': difficulty,
             'resumeContext': resumeContext ?? 'Not provided',
           },
-          'firstMessage':
-              'Hello! I\'m your PrepX AI interviewer today. We\'ll be doing a $difficulty $domain interview for a $jobRole position. Are you ready to begin?',
+          'firstMessage': 'Hello! I\'m your PrepX AI interviewer today. Ready?',
         },
       });
 
       _channel!.sink.add(startPayload);
 
-      // 4. Listen for messages
       _channel!.stream.listen(
         _handleMessage,
         onError: (error) {
           _emitStatus(VapiCallStatus.error);
-          _messageController.addError(error);
+          _safeAddMessage(
+            VapiMessage(type: 'error', content: error.toString()),
+          );
         },
         onDone: () {
           if (_status == VapiCallStatus.active) {
@@ -92,16 +92,17 @@ class VapiService {
         },
       );
 
-      return null; // callId comes via message event
+      return null;
     } catch (e) {
       _emitStatus(VapiCallStatus.error);
       rethrow;
     }
   }
 
-  // ─── Message Handler ──────────────────────────────────────────────────────
-
+  // ─── HANDLE MESSAGE ───────────────────────────────────────────────────────
   void _handleMessage(dynamic raw) {
+    if (_isDisposed) return;
+
     try {
       final data = jsonDecode(raw as String) as Map<String, dynamic>;
       final type = data['type'] as String? ?? '';
@@ -109,71 +110,90 @@ class VapiService {
       switch (type) {
         case 'call-start':
           _emitStatus(VapiCallStatus.active);
-          final callId = data['callId'] as String?;
-          _messageController.add(
-            VapiMessage(type: type, raw: data, content: callId),
+          _safeAddMessage(
+            VapiMessage(type: type, content: data['callId']),
           );
           break;
 
         case 'transcript':
           final role = data['role'] as String?;
           final text = data['transcript'] as String? ?? '';
+
           if (text.isNotEmpty) {
             _transcript.add({'role': role ?? 'unknown', 'text': text});
-            _messageController.add(
-              VapiMessage(type: type, role: role, content: text, raw: data),
+            _safeAddMessage(
+              VapiMessage(type: type, role: role, content: text),
             );
           }
           break;
 
         case 'call-end':
           _emitStatus(VapiCallStatus.ended);
-          _messageController.add(VapiMessage(type: type, raw: data));
+          _safeAddMessage(VapiMessage(type: type));
           break;
 
         case 'error':
           _emitStatus(VapiCallStatus.error);
-          _messageController.add(
-            VapiMessage(type: type, content: data['message']?.toString(), raw: data),
+          _safeAddMessage(
+            VapiMessage(type: type, content: data['message']?.toString()),
           );
           break;
 
         default:
-          _messageController.add(VapiMessage(type: type, raw: data));
+          _safeAddMessage(VapiMessage(type: type, raw: data));
       }
-    } catch (_) {
-      // Ignore malformed messages
-    }
+    } catch (_) {}
   }
 
-  // ─── Stop Call ────────────────────────────────────────────────────────────
-
-  Future<void> stopInterview() async {
-    if (_channel != null) {
-      _channel!.sink.add(jsonEncode({'type': 'stop'}));
-      await Future.delayed(const Duration(milliseconds: 300));
-      await _channel!.sink.close();
-      _channel = null;
+  // ─── SAFE ADD METHODS (CRITICAL FIX) ───────────────────────────────────────
+  void _safeAddMessage(VapiMessage msg) {
+    if (!_messageController.isClosed && !_isDisposed) {
+      _messageController.add(msg);
     }
-    _emitStatus(VapiCallStatus.ended);
   }
-
-  // ─── Utils ────────────────────────────────────────────────────────────────
 
   void _emitStatus(VapiCallStatus s) {
     _status = s;
-    _statusController.add(s);
+    if (!_statusController.isClosed && !_isDisposed) {
+      _statusController.add(s);
+    }
   }
 
+  // ─── STOP INTERVIEW ───────────────────────────────────────────────────────
+  Future<void> stopInterview() async {
+    if (_channel != null) {
+      try {
+        _channel!.sink.add(jsonEncode({'type': 'stop'}));
+        await Future.delayed(const Duration(milliseconds: 200));
+        await _channel!.sink.close();
+      } catch (_) {}
+      _channel = null;
+    }
+
+    _emitStatus(VapiCallStatus.ended);
+  }
+
+  // ─── DISPOSE (FIXED) ──────────────────────────────────────────────────────
+  Future<void> dispose() async {
+    _isDisposed = true;
+
+    try {
+      await stopInterview();
+    } catch (_) {}
+
+    if (!_messageController.isClosed) {
+      await _messageController.close();
+    }
+
+    if (!_statusController.isClosed) {
+      await _statusController.close();
+    }
+  }
+
+  // ─── UTIL ─────────────────────────────────────────────────────────────────
   String buildTranscriptString() {
     return _transcript
         .map((t) => '${t['role']?.toUpperCase()}: ${t['text']}')
         .join('\n');
-  }
-
-  void dispose() {
-    _channel?.sink.close();
-    _messageController.close();
-    _statusController.close();
   }
 }

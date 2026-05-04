@@ -12,12 +12,12 @@ dependencies:
 
   cupertino_icons: ^1.0.8
 
-  # Firebase
-  firebase_core: ^2.32.0
-  firebase_auth: ^4.20.0
-  cloud_firestore: ^4.17.5
-  firebase_storage: ^11.7.7
-  cloud_functions: ^4.7.6
+  # Firebase (updated to v3)
+  firebase_core: ^3.13.0
+  firebase_auth: ^5.5.0
+  cloud_firestore: ^5.6.0
+  firebase_storage: ^12.4.0
+  cloud_functions: ^5.4.0
 
   # State management
   provider: ^6.1.2
@@ -31,14 +31,13 @@ dependencies:
   http: ^1.2.2
   web_socket_channel: ^3.0.1
 
-  # Utils
-  intl: ^0.19.0
-  uuid: ^4.4.0
-  shared_preferences: ^2.3.2
-  cached_network_image: ^3.4.1
-  flutter_svg: ^2.0.10+1
-  lottie: ^3.1.2
+  # Google Sign-In
   google_sign_in: ^6.2.1
+
+  # Utilities
+  uuid: ^4.4.0
+  intl: ^0.19.0
+  shared_preferences: ^2.3.2
 
 dev_dependencies:
   flutter_test:
@@ -50,4 +49,3 @@ flutter:
   assets:
     - assets/images/
     - assets/audio/
-    - assets/animations/

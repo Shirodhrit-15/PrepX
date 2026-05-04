@@ -38,48 +38,51 @@ class DefaultFirebaseOptions {
   // OR just run: flutterfire configure
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'YOUR_WEB_API_KEY',
-    appId: 'YOUR_WEB_APP_ID',
-    messagingSenderId: 'YOUR_SENDER_ID',
-    projectId: 'YOUR_PROJECT_ID',
-    authDomain: 'YOUR_PROJECT_ID.firebaseapp.com',
-    storageBucket: 'YOUR_PROJECT_ID.appspot.com',
+    apiKey: 'AIzaSyCmlr6S3ro4Ca3TPbs1xAMUTII7wwF9ECY',
+    appId: '1:559813008501:web:002f2337cca065e90c2c3c',
+    messagingSenderId: '559813008501',
+    projectId: 'prepx-d58e0',
+    authDomain: 'prepx-d58e0.firebaseapp.com',
+    storageBucket: 'prepx-d58e0.firebasestorage.app',
+    measurementId: 'G-68G9LT1RM0',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'YOUR_ANDROID_API_KEY',
-    appId: 'YOUR_ANDROID_APP_ID',
-    messagingSenderId: 'YOUR_SENDER_ID',
-    projectId: 'YOUR_PROJECT_ID',
-    storageBucket: 'YOUR_PROJECT_ID.appspot.com',
+    apiKey: 'AIzaSyAdtFquXNY9DfEX3gATsvHMqoR7Vk8jtJQ',
+    appId: '1:559813008501:android:22cf86584857715a0c2c3c',
+    messagingSenderId: '559813008501',
+    projectId: 'prepx-d58e0',
+    storageBucket: 'prepx-d58e0.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'YOUR_IOS_API_KEY',
-    appId: 'YOUR_IOS_APP_ID',
-    messagingSenderId: 'YOUR_SENDER_ID',
-    projectId: 'YOUR_PROJECT_ID',
-    storageBucket: 'YOUR_PROJECT_ID.appspot.com',
-    iosClientId: 'YOUR_IOS_CLIENT_ID',
+    apiKey: 'AIzaSyDXJdD7sSx4OqIMYZKxKRYgEvRin4JGR3E',
+    appId: '1:559813008501:ios:173bb30905b507310c2c3c',
+    messagingSenderId: '559813008501',
+    projectId: 'prepx-d58e0',
+    storageBucket: 'prepx-d58e0.firebasestorage.app',
+    iosClientId: '559813008501-pbofg1u2snl51pp0dskadcdl14f38ngc.apps.googleusercontent.com',
     iosBundleId: 'com.example.prepx',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'YOUR_MACOS_API_KEY',
-    appId: 'YOUR_MACOS_APP_ID',
-    messagingSenderId: 'YOUR_SENDER_ID',
-    projectId: 'YOUR_PROJECT_ID',
-    storageBucket: 'YOUR_PROJECT_ID.appspot.com',
-    iosClientId: 'YOUR_MACOS_CLIENT_ID',
+    apiKey: 'AIzaSyDXJdD7sSx4OqIMYZKxKRYgEvRin4JGR3E',
+    appId: '1:559813008501:ios:173bb30905b507310c2c3c',
+    messagingSenderId: '559813008501',
+    projectId: 'prepx-d58e0',
+    storageBucket: 'prepx-d58e0.firebasestorage.app',
+    iosClientId: '559813008501-pbofg1u2snl51pp0dskadcdl14f38ngc.apps.googleusercontent.com',
     iosBundleId: 'com.example.prepx',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'YOUR_WINDOWS_API_KEY',
-    appId: 'YOUR_WINDOWS_APP_ID',
-    messagingSenderId: 'YOUR_SENDER_ID',
-    projectId: 'YOUR_PROJECT_ID',
-    authDomain: 'YOUR_PROJECT_ID.firebaseapp.com',
-    storageBucket: 'YOUR_PROJECT_ID.appspot.com',
+    apiKey: 'AIzaSyDBNHUWMEoDBXpUr9PcwvcjPD0tWxEMqNI',
+    appId: '1:559813008501:web:b08bc4f1615e1b430c2c3c',
+    messagingSenderId: '559813008501',
+    projectId: 'prepx-d58e0',
+    authDomain: 'prepx-d58e0.firebaseapp.com',
+    storageBucket: 'prepx-d58e0.firebasestorage.app',
+    measurementId: 'G-0RNFJXXLED',
   );
+
 }
