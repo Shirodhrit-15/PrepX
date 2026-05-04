@@ -121,7 +121,7 @@ class _InterviewScreenState extends State<InterviewScreen> {
   }
 
   Widget _buildBody(
-      BuildContext context, InterviewProvider interview, ColorScheme cs) {
+      BuildContext context, dynamic interview, ColorScheme cs) {
     switch (interview.phase) {
       case InterviewPhase.connecting:
         return const Center(
@@ -240,7 +240,7 @@ class _InterviewScreenState extends State<InterviewScreen> {
   }
 
   Widget _buildBottomBar(
-      BuildContext context, InterviewProvider interview, ColorScheme cs) {
+      BuildContext context, dynamic interview, ColorScheme cs) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(

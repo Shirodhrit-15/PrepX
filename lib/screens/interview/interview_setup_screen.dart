@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
-import '../../providers/interview_provider.dart';
+import '../../providers/interview_provider.dart' as interview;
 import 'interview_screen.dart';
 
 class InterviewSetupScreen extends StatefulWidget {
@@ -41,7 +41,7 @@ class _InterviewSetupScreenState extends State<InterviewSetupScreen> {
     }
 
     final auth = context.read<AuthProvider>();
-    final interview = context.read<InterviewProvider>();
+    context.read<interview.InterviewProvider>();
 
     Navigator.push(
       context,
@@ -166,15 +166,13 @@ class _InterviewSetupScreenState extends State<InterviewSetupScreen> {
               ),
               child: Row(
                 children: [
-                  Icon(Icons.info_outline_rounded,
-                      color: cs.primary, size: 20),
+                  Icon(Icons.info_outline_rounded, color: cs.primary, size: 20),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
                       'The AI interviewer will conduct a voice interview. Ensure your microphone is ready.',
                       style: TextStyle(
-                          fontSize: 12,
-                          color: cs.onSurface.withOpacity(0.7)),
+                          fontSize: 12, color: cs.onSurface.withOpacity(0.7)),
                     ),
                   ),
                 ],
@@ -229,8 +227,7 @@ class _OptionChip extends StatelessWidget {
             Text(
               label,
               style: TextStyle(
-                fontWeight:
-                    selected ? FontWeight.bold : FontWeight.normal,
+                fontWeight: selected ? FontWeight.bold : FontWeight.normal,
                 color: selected ? activeColor : cs.onSurface,
                 fontSize: 13,
               ),
