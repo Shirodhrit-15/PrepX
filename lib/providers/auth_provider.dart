@@ -20,6 +20,12 @@ class AuthProvider extends ChangeNotifier {
     });
   }
 
+  get uid => _user?.uid;
+
+  get userModel => null;
+
+  Future<bool> get isAuthenticated async => _user != null;
+
   // ✅ SIGN UP (FIXED)
   Future<bool> signUp({
     required String email,
@@ -85,4 +91,10 @@ class AuthProvider extends ChangeNotifier {
     _user = null;
     notifyListeners();
   }
+
+  Future sendPasswordReset(String email) async {}
+
+  Future signInWithGoogle() async {}
+
+  void refreshUserModel() {}
 }

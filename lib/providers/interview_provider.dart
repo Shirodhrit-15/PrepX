@@ -93,3 +93,9 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 }
+
+mixin InterviewProvider {
+  get phase => null;
+
+  void startInterview({required String userId, required String jobRole, required String domain, required String difficulty, String? resumeUrl}) {}
+}

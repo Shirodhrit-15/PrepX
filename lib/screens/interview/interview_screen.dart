@@ -287,6 +287,14 @@ class _InterviewScreenState extends State<InterviewScreen> {
   }
 }
 
+mixin InterviewPhase {
+  static get active => null;
+  
+  static get error => null;
+  
+  static get connecting => null;
+}
+
 // ─────────────────────────────────────────────────────────
 // UI COMPONENTS
 // ─────────────────────────────────────────────────────────
