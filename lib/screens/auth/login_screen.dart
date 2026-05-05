@@ -1,6 +1,9 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:prepx/providers/App_auth_provider.dart' hide AuthProvider;
+import 'package:prepx/providers/app_auth_provider.dart';
 import 'package:provider/provider.dart';
-import '../../providers/auth_provider.dart';
+
 import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -25,7 +28,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _signIn() async {
     if (!_formKey.currentState!.validate()) return;
-    final auth = context.read<AuthProvider>();
+    final auth = context.read<AppAuthProvider>();
     final ok = await auth.signIn(
       email: _emailCtrl.text.trim(),
       password: _passCtrl.text,
@@ -36,7 +39,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _googleSignIn() async {
-    final auth = context.read<AuthProvider>();
+    final auth = context.read<AppAuthProvider>();
     final ok = await auth.signInWithGoogle();
     if (ok && mounted) {
       Navigator.pushReplacementNamed(context, '/home');
@@ -51,7 +54,7 @@ class _LoginScreenState extends State<LoginScreen> {
       );
       return;
     }
-    final auth = context.read<AuthProvider>();
+    final auth = context.read<AppAuthProvider>();
     final ok = await auth.sendPasswordReset(email);
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -195,8 +198,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12),
                     child: Text('or',
-                        style: TextStyle(
-                            color: cs.onSurface.withOpacity(0.5))),
+                        style: TextStyle(color: cs.onSurface.withOpacity(0.5))),
                   ),
                   const Expanded(child: Divider()),
                 ],
@@ -220,8 +222,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   GestureDetector(
                     onTap: () => Navigator.push(
                       context,
-                      MaterialPageRoute(
-                          builder: (_) => const RegisterScreen()),
+                      MaterialPageRoute(builder: (_) => const RegisterScreen()),
                     ),
                     child: Text(
                       'Sign Up',

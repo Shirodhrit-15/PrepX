@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/interview_provider.dart';
@@ -24,13 +26,11 @@ class InterviewScreen extends StatefulWidget {
 }
 
 class _InterviewScreenState extends State<InterviewScreen> {
-  bool _hasNavigated = false; // 🔥 prevents multiple navigation
+  bool _hasNavigated = false;
 
   @override
   void initState() {
     super.initState();
-
-    // Start interview after first frame
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<InterviewProvider>().startInterview(
             userId: widget.userId,
@@ -48,15 +48,12 @@ class _InterviewScreenState extends State<InterviewScreen> {
     final interview = context.watch<InterviewProvider>();
     final phase = interview.phase;
 
-    // 🔥 SAFE NAVIGATION HANDLING
     if (!_hasNavigated &&
         phase == InterviewPhase.done &&
         interview.currentResult != null) {
       _hasNavigated = true;
-
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
-
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
@@ -65,11 +62,7 @@ class _InterviewScreenState extends State<InterviewScreen> {
             ),
           ),
         );
-
-        // 🔥 delay reset to avoid stream crash
-        Future.microtask(() {
-          interview.reset();
-        });
+        Future.microtask(() => interview.reset());
       });
     }
 
@@ -121,7 +114,7 @@ class _InterviewScreenState extends State<InterviewScreen> {
   }
 
   Widget _buildBody(
-      BuildContext context, dynamic interview, ColorScheme cs) {
+      BuildContext context, InterviewProvider interview, ColorScheme cs) {
     switch (interview.phase) {
       case InterviewPhase.connecting:
         return const Center(
@@ -169,7 +162,7 @@ class _InterviewScreenState extends State<InterviewScreen> {
                 Text(
                   interview.errorMessage ?? 'Unknown error',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: cs.onSurface.withOpacity(0.6)),
+                  style: TextStyle(color: cs.onSurface.withValues(alpha: 0.6)),
                 ),
                 const SizedBox(height: 24),
                 ElevatedButton(
@@ -187,7 +180,6 @@ class _InterviewScreenState extends State<InterviewScreen> {
       case InterviewPhase.active:
         return Column(
           children: [
-            // 🔥 Active indicator
             Container(
               width: double.infinity,
               color: cs.primaryContainer,
@@ -207,15 +199,13 @@ class _InterviewScreenState extends State<InterviewScreen> {
                 ],
               ),
             ),
-
-            // 🔥 Transcript
             Expanded(
               child: interview.liveTranscript.isEmpty
                   ? Center(
                       child: Text(
                         'The AI interviewer will speak first...',
                         style: TextStyle(
-                          color: cs.onSurface.withOpacity(0.5),
+                          color: cs.onSurface.withValues(alpha: 0.5),
                         ),
                       ),
                     )
@@ -240,7 +230,7 @@ class _InterviewScreenState extends State<InterviewScreen> {
   }
 
   Widget _buildBottomBar(
-      BuildContext context, dynamic interview, ColorScheme cs) {
+      BuildContext context, InterviewProvider interview, ColorScheme cs) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -287,14 +277,6 @@ class _InterviewScreenState extends State<InterviewScreen> {
   }
 }
 
-mixin InterviewPhase {
-  static get active => null;
-  
-  static get error => null;
-  
-  static get connecting => null;
-}
-
 // ─────────────────────────────────────────────────────────
 // UI COMPONENTS
 // ─────────────────────────────────────────────────────────
@@ -303,10 +285,7 @@ class _TranscriptBubble extends StatelessWidget {
   final String role;
   final String text;
 
-  const _TranscriptBubble({
-    required this.role,
-    required this.text,
-  });
+  const _TranscriptBubble({required this.role, required this.text});
 
   @override
   Widget build(BuildContext context) {
@@ -396,7 +375,7 @@ class _PulsingDotState extends State<_PulsingDot>
         width: 10,
         height: 10,
         decoration: BoxDecoration(
-          color: widget.color.withOpacity(0.5 + _ctrl.value * 0.5),
+          color: widget.color.withValues(alpha: 0.5 + _ctrl.value * 0.5),
           shape: BoxShape.circle,
         ),
       ),

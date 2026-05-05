@@ -1,6 +1,7 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../providers/auth_provider.dart';
+import '../../providers/App_auth_provider.dart';
 import '../../services/firestore_service.dart';
 import '../../models/session_model.dart';
 import '../interview/interview_setup_screen.dart';
@@ -92,8 +93,7 @@ class _DashboardPage extends StatelessWidget {
             // Greeting
             Text(
               'Hello, ${user?.displayName.split(' ').first ?? 'there'} 👋',
-              style: const TextStyle(
-                  fontSize: 24, fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             Text(
               'Ready for your next interview?',
@@ -199,8 +199,7 @@ class _DashboardPage extends StatelessWidget {
                       padding: const EdgeInsets.all(24),
                       child: Text(
                         'No sessions yet. Start your first interview!',
-                        style: TextStyle(
-                            color: cs.onSurface.withOpacity(0.5)),
+                        style: TextStyle(color: cs.onSurface.withOpacity(0.5)),
                         textAlign: TextAlign.center,
                       ),
                     ),
@@ -211,8 +210,7 @@ class _DashboardPage extends StatelessWidget {
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: sessions.length,
                   separatorBuilder: (_, __) => const SizedBox(height: 8),
-                  itemBuilder: (_, i) =>
-                      _SessionTile(session: sessions[i]),
+                  itemBuilder: (_, i) => _SessionTile(session: sessions[i]),
                 );
               },
             ),
@@ -281,9 +279,8 @@ class _SessionTile extends StatelessWidget {
         side: BorderSide(color: cs.outlineVariant),
       ),
       leading: CircleAvatar(
-        backgroundColor: isCompleted
-            ? cs.primaryContainer
-            : cs.surfaceContainerHighest,
+        backgroundColor:
+            isCompleted ? cs.primaryContainer : cs.surfaceContainerHighest,
         child: Icon(
           isCompleted ? Icons.check_rounded : Icons.hourglass_empty_rounded,
           color: isCompleted ? cs.primary : cs.onSurfaceVariant,
@@ -304,8 +301,7 @@ class _SessionTile extends StatelessWidget {
           ? () => Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) =>
-                      ResultsScreen(sessionId: session.sessionId),
+                  builder: (_) => ResultsScreen(sessionId: session.sessionId),
                 ),
               )
           : null,

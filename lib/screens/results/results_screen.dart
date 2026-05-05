@@ -1,3 +1,5 @@
+// ignore_for_file: unused_local_variable
+
 import 'package:flutter/material.dart';
 import '../../models/result_model.dart';
 import '../../services/firestore_service.dart';
@@ -16,8 +18,7 @@ class ResultsScreen extends StatelessWidget {
         title: const Text('Interview Results'),
         leading: IconButton(
           icon: const Icon(Icons.home_rounded),
-          onPressed: () =>
-              Navigator.pushReplacementNamed(context, '/home'),
+          onPressed: () => Navigator.pushReplacementNamed(context, '/home'),
         ),
       ),
       body: StreamBuilder<ResultModel?>(
@@ -91,7 +92,8 @@ class _ResultsBody extends StatelessWidget {
                   ),
                 ),
                 const Text('Overall Score',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                    style:
+                        TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
                 const SizedBox(height: 8),
                 _ScoreLabel(score: score),
               ],
@@ -102,8 +104,7 @@ class _ResultsBody extends StatelessWidget {
           // Category scores
           if (result.categoryScores.isNotEmpty) ...[
             const Text('Category Breakdown',
-                style:
-                    TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+                style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
             ...result.categoryScores.entries.map(
               (e) => _CategoryBar(
@@ -145,14 +146,12 @@ class _ResultsBody extends StatelessWidget {
           // Per question breakdown
           if (result.questionResults.isNotEmpty) ...[
             const Text('Question Breakdown',
-                style:
-                    TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+                style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
             ...result.questionResults
                 .asMap()
                 .entries
-                .map((e) => _QuestionCard(
-                    index: e.key + 1, qResult: e.value)),
+                .map((e) => _QuestionCard(index: e.key + 1, qResult: e.value)),
           ],
           const SizedBox(height: 32),
 
@@ -160,8 +159,7 @@ class _ResultsBody extends StatelessWidget {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
-              onPressed: () =>
-                  Navigator.pushReplacementNamed(context, '/home'),
+              onPressed: () => Navigator.pushReplacementNamed(context, '/home'),
               icon: const Icon(Icons.replay_rounded),
               label: const Text('Try Another Interview'),
               style: ElevatedButton.styleFrom(
@@ -276,9 +274,7 @@ class _FeedbackSection extends StatelessWidget {
               const SizedBox(width: 8),
               Text(title,
                   style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15,
-                      color: color)),
+                      fontWeight: FontWeight.bold, fontSize: 15, color: color)),
             ],
           ),
           const SizedBox(height: 10),
@@ -290,7 +286,8 @@ class _FeedbackSection extends StatelessWidget {
                     Icon(Icons.circle, size: 6, color: color),
                     const SizedBox(width: 10),
                     Expanded(
-                        child: Text(item, style: const TextStyle(fontSize: 13))),
+                        child:
+                            Text(item, style: const TextStyle(fontSize: 13))),
                   ],
                 ),
               )),
@@ -324,8 +321,7 @@ class _QuestionCard extends StatelessWidget {
           backgroundColor: scoreColor.withOpacity(0.15),
           child: Text(
             '$score',
-            style: TextStyle(
-                color: scoreColor, fontWeight: FontWeight.bold),
+            style: TextStyle(color: scoreColor, fontWeight: FontWeight.bold),
           ),
         ),
         title: Text(
@@ -346,8 +342,7 @@ class _QuestionCard extends StatelessWidget {
                 const SizedBox(height: 8),
                 _InfoRow(label: 'Feedback:', value: qResult.feedback),
                 const SizedBox(height: 8),
-                _InfoRow(
-                    label: 'Ideal answer:', value: qResult.idealAnswer),
+                _InfoRow(label: 'Ideal answer:', value: qResult.idealAnswer),
               ],
             ),
           ),
@@ -369,8 +364,7 @@ class _InfoRow extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label,
-            style: const TextStyle(
-                fontWeight: FontWeight.bold, fontSize: 12)),
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
         const SizedBox(height: 4),
         Text(value, style: const TextStyle(fontSize: 13)),
       ],

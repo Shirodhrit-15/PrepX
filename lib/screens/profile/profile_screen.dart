@@ -1,6 +1,7 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../providers/auth_provider.dart';
+import '../../providers/App_auth_provider.dart';
 import '../../services/firestore_service.dart';
 import '../../services/storage_service.dart';
 import '../../models/user_model.dart';
@@ -21,10 +22,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _uploadingResume = false;
 
   final _roles = [
-    'Flutter Developer', 'Android Developer', 'iOS Developer',
-    'Full Stack Developer', 'Data Scientist', 'ML Engineer',
-    'Backend Developer', 'Frontend Developer', 'DevOps Engineer',
-    'Product Manager', 'UI/UX Designer', 'Other',
+    'Flutter Developer',
+    'Android Developer',
+    'iOS Developer',
+    'Full Stack Developer',
+    'Data Scientist',
+    'ML Engineer',
+    'Backend Developer',
+    'Frontend Developer',
+    'DevOps Engineer',
+    'Product Manager',
+    'UI/UX Designer',
+    'Other',
   ];
 
   final _levels = ['fresher', 'junior', 'mid', 'senior'];
@@ -105,8 +114,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () async {
-                  await _firestoreService.updateUser(
-                      widget.uid, {'targetRole': selected});
+                  await _firestoreService
+                      .updateUser(widget.uid, {'targetRole': selected});
                   if (context.mounted) {
                     context.read<AuthProvider>().refreshUserModel();
                     Navigator.pop(context);
@@ -156,8 +165,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () async {
-                  await _firestoreService.updateUser(
-                      widget.uid, {'experienceLevel': selected});
+                  await _firestoreService
+                      .updateUser(widget.uid, {'experienceLevel': selected});
                   if (context.mounted) {
                     context.read<AuthProvider>().refreshUserModel();
                     Navigator.pop(context);
@@ -215,15 +224,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 user.displayName.isNotEmpty
                                     ? user.displayName[0].toUpperCase()
                                     : 'U',
-                                style: TextStyle(
-                                    fontSize: 40, color: cs.primary),
+                                style:
+                                    TextStyle(fontSize: 40, color: cs.primary),
                               )
                             : null,
                       ),
                       GestureDetector(
-                        onTap: _uploadingPhoto
-                            ? null
-                            : () => _uploadPhoto(user),
+                        onTap:
+                            _uploadingPhoto ? null : () => _uploadPhoto(user),
                         child: CircleAvatar(
                           radius: 18,
                           backgroundColor: cs.primary,
@@ -245,8 +253,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       style: const TextStyle(
                           fontSize: 20, fontWeight: FontWeight.bold)),
                   Text(user.email,
-                      style: TextStyle(
-                          color: cs.onSurface.withOpacity(0.6))),
+                      style: TextStyle(color: cs.onSurface.withOpacity(0.6))),
                   const SizedBox(height: 24),
 
                   // Stats row
@@ -254,16 +261,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       _StatItem(
-                          label: 'Sessions',
-                          value: '${user.totalSessions}'),
-                      Container(
-                          width: 1,
-                          height: 40,
-                          color: cs.outlineVariant),
+                          label: 'Sessions', value: '${user.totalSessions}'),
+                      Container(width: 1, height: 40, color: cs.outlineVariant),
                       _StatItem(
                           label: 'Avg Score',
-                          value:
-                              '${user.avgScore.toStringAsFixed(0)}%'),
+                          value: '${user.avgScore.toStringAsFixed(0)}%'),
                     ],
                   ),
                   const SizedBox(height: 28),
@@ -298,8 +300,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               ? const SizedBox(
                                   width: 18,
                                   height: 18,
-                                  child: CircularProgressIndicator(
-                                      strokeWidth: 2),
+                                  child:
+                                      CircularProgressIndicator(strokeWidth: 2),
                                 )
                               : TextButton(
                                   onPressed: _uploadResume,
@@ -339,8 +341,7 @@ class _StatItem extends StatelessWidget {
     return Column(
       children: [
         Text(value,
-            style:
-                const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
         Text(label,
             style: TextStyle(
                 fontSize: 13,
