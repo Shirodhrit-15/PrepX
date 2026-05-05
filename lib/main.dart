@@ -1,86 +1,42 @@
-// ignore_for_file: unused_import
-
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:prepx/screens/auth/register_screen.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_core/firebase_core.dart';
+
 import 'firebase_options.dart';
 import 'providers/auth_provider.dart';
 import 'providers/interview_provider.dart';
-import 'screens/auth/splash_screen.dart';
 import 'screens/auth/login_screen.dart';
+import 'screens/auth/splash_screen.dart';
 import 'screens/home/home_screen.dart';
-import 'screens/interview/interview_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  if (Firebase.apps.isEmpty) {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-  }
-  runApp(const PrepXApp());
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  runApp(const MyApp());
 }
 
-class PrepXApp extends StatelessWidget {
-  const PrepXApp({super.key});
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => AppAuthProvider()),
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => InterviewProvider()),
       ],
       child: MaterialApp(
-        title: 'PrepX',
         debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color(0xFF6C63FF),
-            brightness: Brightness.light,
-          ),
-          useMaterial3: true,
-          fontFamily: 'Roboto',
-          appBarTheme: const AppBarTheme(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            centerTitle: true,
-          ),
-          inputDecorationTheme: InputDecorationTheme(
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 14,
-            ),
-          ),
-          elevatedButtonTheme: ElevatedButtonThemeData(
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-          ),
-        ),
-        darkTheme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color(0xFF6C63FF),
-            brightness: Brightness.dark,
-          ),
-          useMaterial3: true,
-        ),
-        themeMode: ThemeMode.system,
-        home: const SplashScreen(),
+        initialRoute: '/',
         routes: {
-          '/login': (_) => const LoginScreen(),
+          '/': (_) => const SplashScreen(),
+          '/login': (_) => const LoginPage(),
           '/home': (_) => const HomeScreen(),
-          '/interview': (_) => const InterviewScreen(
-                userId: '',
-                jobRole: '',
-                domain: '',
-                difficulty: '',
-              ),
+          '/register': (_) => const RegisterScreen(), // 🔥 ADD THIS
         },
       ),
     );

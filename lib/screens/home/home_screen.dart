@@ -21,8 +21,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final auth = context.watch<AppAuthProvider>();
-    final uid = auth.uid ?? '';
+    final auth = context.watch<AuthProvider>();
+    final uid = auth.uid;
 
     final pages = [
       _DashboardPage(uid: uid, firestoreService: _firestoreService),
@@ -66,7 +66,7 @@ class _DashboardPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final auth = context.watch<AppAuthProvider>();
+    final auth = context.watch<AuthProvider>();
     final user = auth.user;
 
     return Scaffold(
