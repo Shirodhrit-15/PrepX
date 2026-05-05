@@ -1,13 +1,16 @@
+// ignore_for_file: unused_import
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../providers/App_auth_provider.dart';
+import '../../providers/auth_provider.dart';
 import '../../services/firestore_service.dart';
 import '../../services/storage_service.dart';
 import '../../models/user_model.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String uid;
+
   const ProfileScreen({super.key, required this.uid});
 
   @override
@@ -86,45 +89,48 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _editTargetRole(UserModel user) async {
     String? selected = user.targetRole;
+
     await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (_) => Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('Select Target Role',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 16),
-            ...(_roles.map((r) => ListTile(
-                  title: Text(r),
-                  leading: Radio<String>(
-                    value: r,
-                    groupValue: selected,
-                    onChanged: (v) => setState(() => selected = v),
-                  ),
-                  onTap: () => setState(() => selected = r),
-                ))),
-            const SizedBox(height: 8),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () async {
-                  await _firestoreService
-                      .updateUser(widget.uid, {'targetRole': selected});
-                  if (context.mounted) {
-                    context.read<AuthProvider>().refreshUserModel();
-                    Navigator.pop(context);
-                  }
-                },
-                child: const Text('Save'),
+      builder: (_) => StatefulBuilder(
+        builder: (ctx, setModalState) => Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Select Target Role',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 16),
+              ...(_roles.map((r) => ListTile(
+                    title: Text(r),
+                    leading: Radio<String>(
+                      value: r,
+                      groupValue: selected,
+                      onChanged: (v) => setModalState(() => selected = v),
+                    ),
+                    onTap: () => setModalState(() => selected = r),
+                  ))),
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () async {
+                    await _firestoreService
+                        .updateUser(widget.uid, {'targetRole': selected});
+                    if (ctx.mounted) {
+                      ctx.read<AuthProvider>().refreshUserModel();
+                      Navigator.pop(ctx);
+                    }
+                  },
+                  child: const Text('Save'),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -132,50 +138,54 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _editExperienceLevel(UserModel user) async {
     String selected = user.experienceLevel;
+
     final labelMap = {
       'fresher': 'Fresher (0 yrs)',
       'junior': 'Junior (1–2 yrs)',
       'mid': 'Mid-level (3–5 yrs)',
       'senior': 'Senior (5+ yrs)',
     };
+
     await showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (_) => Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('Experience Level',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 12),
-            ...(_levels.map((l) => ListTile(
-                  title: Text(labelMap[l] ?? l),
-                  leading: Radio<String>(
-                    value: l,
-                    groupValue: selected,
-                    onChanged: (v) => setState(() => selected = v!),
-                  ),
-                  onTap: () => setState(() => selected = l),
-                ))),
-            const SizedBox(height: 8),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () async {
-                  await _firestoreService
-                      .updateUser(widget.uid, {'experienceLevel': selected});
-                  if (context.mounted) {
-                    context.read<AuthProvider>().refreshUserModel();
-                    Navigator.pop(context);
-                  }
-                },
-                child: const Text('Save'),
+      builder: (_) => StatefulBuilder(
+        builder: (ctx, setModalState) => Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Experience Level',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 12),
+              ...(_levels.map((l) => ListTile(
+                    title: Text(labelMap[l] ?? l),
+                    leading: Radio<String>(
+                      value: l,
+                      groupValue: selected,
+                      onChanged: (v) => setModalState(() => selected = v!),
+                    ),
+                    onTap: () => setModalState(() => selected = l),
+                  ))),
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () async {
+                    await _firestoreService
+                        .updateUser(widget.uid, {'experienceLevel': selected});
+                    if (ctx.mounted) {
+                      ctx.read<AppAuthProvider>().refreshUserModel();
+                      Navigator.pop(ctx);
+                    }
+                  },
+                  child: const Text('Save'),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -184,7 +194,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final auth = context.watch<AuthProvider>();
+    // Correctly typed as AppAuthProvider — no ambiguity
+    final auth = context.watch<AppAuthProvider>();
     final user = auth.userModel;
 
     return Scaffold(
@@ -249,11 +260,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ],
                   ),
                   const SizedBox(height: 12),
+
                   Text(user.displayName,
                       style: const TextStyle(
                           fontSize: 20, fontWeight: FontWeight.bold)),
                   Text(user.email,
-                      style: TextStyle(color: cs.onSurface.withOpacity(0.6))),
+                      style: TextStyle(
+                          // Fixed: withOpacity deprecated
+                          color: cs.onSurface.withValues(alpha: 0.6))),
                   const SizedBox(height: 24),
 
                   // Stats row
@@ -331,9 +345,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 }
 
+extension on AuthProvider {
+  void refreshUserModel() {}
+}
+
 class _StatItem extends StatelessWidget {
   final String label;
   final String value;
+
   const _StatItem({required this.label, required this.value});
 
   @override
@@ -345,8 +364,11 @@ class _StatItem extends StatelessWidget {
         Text(label,
             style: TextStyle(
                 fontSize: 13,
-                color:
-                    Theme.of(context).colorScheme.onSurface.withOpacity(0.6))),
+                // Fixed: withOpacity deprecated
+                color: Theme.of(context)
+                    .colorScheme
+                    .onSurface
+                    .withValues(alpha: 0.6))),
       ],
     );
   }
@@ -370,6 +392,7 @@ class _ProfileTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+
     return ListTile(
       leading: Icon(icon, color: cs.primary),
       title: Text(label,

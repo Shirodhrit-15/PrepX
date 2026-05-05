@@ -1,9 +1,9 @@
+// ignore_for_file: unused_import
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:prepx/providers/App_auth_provider.dart' hide AuthProvider;
-import 'package:prepx/providers/app_auth_provider.dart';
+import 'package:prepx/providers/auth_provider.dart';
 import 'package:provider/provider.dart';
-
 import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -28,11 +28,13 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _signIn() async {
     if (!_formKey.currentState!.validate()) return;
+
     final auth = context.read<AppAuthProvider>();
     final ok = await auth.signIn(
       email: _emailCtrl.text.trim(),
       password: _passCtrl.text,
     );
+
     if (ok && mounted) {
       Navigator.pushReplacementNamed(context, '/home');
     }
@@ -54,6 +56,7 @@ class _LoginScreenState extends State<LoginScreen> {
       );
       return;
     }
+
     final auth = context.read<AppAuthProvider>();
     final ok = await auth.sendPasswordReset(email);
     if (mounted) {
@@ -68,7 +71,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final auth = context.watch<AuthProvider>();
+    final auth = context.watch<AppAuthProvider>();
 
     return Scaffold(
       body: SafeArea(
@@ -78,6 +81,7 @@ class _LoginScreenState extends State<LoginScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const SizedBox(height: 40),
+
               // Logo
               Center(
                 child: Container(
@@ -92,6 +96,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
               const SizedBox(height: 16),
+
               Text(
                 'Welcome back',
                 textAlign: TextAlign.center,
@@ -106,7 +111,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 14,
-                  color: cs.onSurface.withOpacity(0.6),
+                  color: cs.onSurface.withValues(alpha: 0.6),
                 ),
               ),
               const SizedBox(height: 36),
@@ -164,6 +169,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
               const SizedBox(height: 8),
+
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton(
@@ -198,7 +204,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12),
                     child: Text('or',
-                        style: TextStyle(color: cs.onSurface.withOpacity(0.5))),
+                        style: TextStyle(
+                            color: cs.onSurface.withValues(alpha: 0.5))),
                   ),
                   const Expanded(child: Divider()),
                 ],
@@ -218,7 +225,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text("Don't have an account? ",
-                      style: TextStyle(color: cs.onSurface.withOpacity(0.6))),
+                      style: TextStyle(
+                          color: cs.onSurface.withValues(alpha: 0.6))),
                   GestureDetector(
                     onTap: () => Navigator.push(
                       context,

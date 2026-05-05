@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:prepx/providers/auth_provider.dart';
 import 'package:provider/provider.dart';
-import '../providers/auth_provider.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -15,7 +15,7 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    final auth = context.watch<AuthProvider>();
+    final auth = context.watch<AppAuthProvider>();
 
     // 🔥 AUTO NAVIGATION WHEN LOGIN SUCCESS
     if (auth.user != null) {
@@ -56,7 +56,7 @@ class _LoginPageState extends State<LoginPage> {
               onPressed: auth.isLoading
                   ? null
                   : () async {
-                      await context.read<AuthProvider>().signIn(
+                      await context.read<AppAuthProvider>().signIn(
                             email: emailCtrl.text,
                             password: passCtrl.text,
                           );

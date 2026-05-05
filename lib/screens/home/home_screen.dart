@@ -1,13 +1,12 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../providers/App_auth_provider.dart';
+import 'package:intl/intl.dart';
+import '../../providers/auth_provider.dart';
 import '../../services/firestore_service.dart';
 import '../../models/session_model.dart';
 import '../interview/interview_setup_screen.dart';
 import '../results/results_screen.dart';
 import '../profile/profile_screen.dart';
-import 'package:intl/intl.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -22,7 +21,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final auth = context.watch<AuthProvider>();
+    final auth = context.watch<AppAuthProvider>();
     final uid = auth.uid ?? '';
 
     final pages = [
@@ -67,8 +66,8 @@ class _DashboardPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final auth = context.watch<AuthProvider>();
-    final user = auth.userModel;
+    final auth = context.watch<AppAuthProvider>();
+    final user = auth.user;
 
     return Scaffold(
       appBar: AppBar(
@@ -90,47 +89,20 @@ class _DashboardPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Greeting
             Text(
-              'Hello, ${user?.displayName.split(' ').first ?? 'there'} 👋',
+              'Hello, ${user?.displayName?.split(' ').first ?? 'there'} 👋',
               style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             Text(
               'Ready for your next interview?',
-              style: TextStyle(color: cs.onSurface.withOpacity(0.6)),
+              style: TextStyle(color: cs.onSurface.withValues(alpha: 0.6)),
             ),
             const SizedBox(height: 24),
-
-            // Stats cards
-            Row(
-              children: [
-                Expanded(
-                  child: _StatCard(
-                    label: 'Sessions',
-                    value: '${user?.totalSessions ?? 0}',
-                    icon: Icons.mic_rounded,
-                    color: cs.primaryContainer,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _StatCard(
-                    label: 'Avg Score',
-                    value: '${user?.avgScore.toStringAsFixed(0) ?? 0}%',
-                    icon: Icons.insights_rounded,
-                    color: cs.secondaryContainer,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-
-            // Start interview CTA
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [cs.primary, cs.primary.withOpacity(0.7)],
+                  colors: [cs.primary, cs.primary.withValues(alpha: 0.7)],
                 ),
                 borderRadius: BorderRadius.circular(20),
               ),
@@ -152,7 +124,7 @@ class _DashboardPage extends StatelessWidget {
                         Text(
                           'AI-powered voice interview with real-time feedback',
                           style: TextStyle(
-                            color: Colors.white.withOpacity(0.85),
+                            color: Colors.white.withValues(alpha: 0.85),
                             fontSize: 13,
                           ),
                         ),
@@ -179,8 +151,6 @@ class _DashboardPage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 28),
-
-            // Recent sessions
             const Text(
               'Recent Sessions',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -199,7 +169,8 @@ class _DashboardPage extends StatelessWidget {
                       padding: const EdgeInsets.all(24),
                       child: Text(
                         'No sessions yet. Start your first interview!',
-                        style: TextStyle(color: cs.onSurface.withOpacity(0.5)),
+                        style: TextStyle(
+                            color: cs.onSurface.withValues(alpha: 0.5)),
                         textAlign: TextAlign.center,
                       ),
                     ),
@@ -221,46 +192,6 @@ class _DashboardPage extends StatelessWidget {
   }
 }
 
-class _StatCard extends StatelessWidget {
-  final String label;
-  final String value;
-  final IconData icon;
-  final Color color;
-
-  const _StatCard({
-    required this.label,
-    required this.value,
-    required this.icon,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, size: 32),
-          const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(value,
-                  style: const TextStyle(
-                      fontSize: 22, fontWeight: FontWeight.bold)),
-              Text(label, style: const TextStyle(fontSize: 12)),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _SessionTile extends StatelessWidget {
   final SessionModel session;
 
@@ -270,7 +201,7 @@ class _SessionTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final isCompleted = session.status == SessionStatus.completed;
-    final dateStr = DateFormat('MMM d, y  h:mm a').format(session.createdAt);
+    final dateStr = DateFormat('MMM d, y h:mm a').format(session.createdAt);
 
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -286,13 +217,12 @@ class _SessionTile extends StatelessWidget {
           color: isCompleted ? cs.primary : cs.onSurfaceVariant,
         ),
       ),
-      title: Text(
-        session.jobRole,
-        style: const TextStyle(fontWeight: FontWeight.w600),
-      ),
+      title: Text(session.jobRole,
+          style: const TextStyle(fontWeight: FontWeight.w600)),
       subtitle: Text(
         '${session.domain} · ${session.difficulty} · $dateStr',
-        style: TextStyle(fontSize: 12, color: cs.onSurface.withOpacity(0.6)),
+        style:
+            TextStyle(fontSize: 12, color: cs.onSurface.withValues(alpha: 0.6)),
       ),
       trailing: isCompleted
           ? const Icon(Icons.arrow_forward_ios_rounded, size: 14)

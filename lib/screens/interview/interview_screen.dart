@@ -1,5 +1,3 @@
-// ignore_for_file: deprecated_member_use
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/interview_provider.dart';
@@ -48,6 +46,7 @@ class _InterviewScreenState extends State<InterviewScreen> {
     final interview = context.watch<InterviewProvider>();
     final phase = interview.phase;
 
+    // Safe navigation once results are ready
     if (!_hasNavigated &&
         phase == InterviewPhase.done &&
         interview.currentResult != null) {
@@ -62,18 +61,24 @@ class _InterviewScreenState extends State<InterviewScreen> {
             ),
           ),
         );
-        Future.microtask(() => interview.reset());
+        Future.microtask(() {
+          interview.reset();
+        });
       });
     }
 
-    return WillPopScope(
-      onWillPop: () async {
+    // PopScope replaces deprecated WillPopScope
+    return PopScope(
+      canPop: phase != InterviewPhase.active,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop) return;
         if (phase == InterviewPhase.active) {
           final confirm = await _showEndDialog(context);
-          if (confirm) await interview.endInterview();
-          return confirm;
+          if (confirm) {
+            await interview.endInterview();
+            if (mounted) Navigator.pop(context);
+          }
         }
-        return true;
       },
       child: Scaffold(
         backgroundColor: cs.surface,
@@ -285,7 +290,10 @@ class _TranscriptBubble extends StatelessWidget {
   final String role;
   final String text;
 
-  const _TranscriptBubble({required this.role, required this.text});
+  const _TranscriptBubble({
+    required this.role,
+    required this.text,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -342,6 +350,7 @@ class _TranscriptBubble extends StatelessWidget {
 
 class _PulsingDot extends StatefulWidget {
   final Color color;
+
   const _PulsingDot({required this.color});
 
   @override

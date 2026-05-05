@@ -1,12 +1,10 @@
 import 'package:cloud_functions/cloud_functions.dart';
 
 class ApiService {
+  // ignore: unused_field
   final FirebaseFunctions _functions = FirebaseFunctions.instance;
 
   // ─── Analyze Transcript via Gemini (Cloud Function) ───────────────────────
-
-  /// Sends the transcript to Cloud Functions which calls Gemini and
-  /// writes the result to Firestore.
   Future<Map<String, dynamic>> analyzeTranscript({
     required String sessionId,
     required String userId,
@@ -33,7 +31,6 @@ class ApiService {
   }
 
   // ─── Generate Interview Questions ─────────────────────────────────────────
-
   Future<List<Map<String, dynamic>>> generateQuestions({
     required String jobRole,
     required String domain,
@@ -53,9 +50,6 @@ class ApiService {
   }
 
   // ─── Create Vapi Assistant (Cloud Function) ───────────────────────────────
-
-  /// Creates a one-time Vapi assistant configured for the session.
-  /// Returns the assistant ID to use for the WebSocket connection.
   Future<String> createVapiAssistant({
     required String jobRole,
     required String domain,

@@ -1,7 +1,9 @@
+// ignore_for_file: unused_import
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:prepx/providers/auth_provider.dart';
 import 'package:provider/provider.dart';
-import '../../providers/App_auth_provider.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -28,7 +30,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Future<void> register() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final auth = context.read<AuthProvider>();
+    final auth = context.read<AppAuthProvider>();
 
     final ok = await auth.signUp(
       email: _emailCtrl.text.trim(),
@@ -43,7 +45,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final auth = context.watch<AuthProvider>();
+    final auth = context.watch<AppAuthProvider>();
 
     return Scaffold(
       appBar: AppBar(title: const Text("Register")),

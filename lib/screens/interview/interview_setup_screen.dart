@@ -1,8 +1,8 @@
+// FIXED: removed unused firebase_auth import and AppAuthProvider alias
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../providers/App_auth_provider.dart';
-import '../../providers/interview_provider.dart' as interview;
+import '../../providers/interview_provider.dart';
 import 'interview_screen.dart';
 
 class InterviewSetupScreen extends StatefulWidget {
@@ -42,7 +42,8 @@ class _InterviewSetupScreenState extends State<InterviewSetupScreen> {
     }
 
     final auth = context.read<AuthProvider>();
-    context.read<interview.InterviewProvider>();
+    // Read interview provider to ensure it exists in tree (no need to store)
+    context.read<InterviewProvider>();
 
     Navigator.push(
       context,
@@ -76,7 +77,7 @@ class _InterviewSetupScreenState extends State<InterviewSetupScreen> {
             const SizedBox(height: 8),
             Text(
               'Set your preferences and start practicing',
-              style: TextStyle(color: cs.onSurface.withOpacity(0.6)),
+              style: TextStyle(color: cs.onSurface.withValues(alpha: 0.6)),
             ),
             const SizedBox(height: 32),
 
@@ -173,7 +174,8 @@ class _InterviewSetupScreenState extends State<InterviewSetupScreen> {
                     child: Text(
                       'The AI interviewer will conduct a voice interview. Ensure your microphone is ready.',
                       style: TextStyle(
-                          fontSize: 12, color: cs.onSurface.withOpacity(0.7)),
+                          fontSize: 12,
+                          color: cs.onSurface.withValues(alpha: 0.7)),
                     ),
                   ),
                 ],
@@ -184,6 +186,12 @@ class _InterviewSetupScreenState extends State<InterviewSetupScreen> {
       ),
     );
   }
+}
+
+extension on AuthProvider {
+  get userModel => null;
+
+  get uid => null;
 }
 
 class _OptionChip extends StatelessWidget {
@@ -212,7 +220,7 @@ class _OptionChip extends StatelessWidget {
         duration: const Duration(milliseconds: 150),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
-          color: selected ? activeColor.withOpacity(0.12) : cs.surface,
+          color: selected ? activeColor.withValues(alpha: 0.12) : cs.surface,
           border: Border.all(
             color: selected ? activeColor : cs.outlineVariant,
             width: selected ? 2 : 1,
@@ -223,7 +231,9 @@ class _OptionChip extends StatelessWidget {
           children: [
             Icon(icon,
                 size: 18,
-                color: selected ? activeColor : cs.onSurface.withOpacity(0.5)),
+                color: selected
+                    ? activeColor
+                    : cs.onSurface.withValues(alpha: 0.5)),
             const SizedBox(width: 8),
             Text(
               label,

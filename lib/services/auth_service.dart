@@ -1,108 +1,142 @@
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import 'firestore_service.dart';
-import '../models/user_model.dart';
+// lib/services/auth_service.dart
+// Legacy mock auth service kept for reference only.
+// The app uses lib/providers/auth_provider.dart + lib/services/auth_service.dart.
+// This file's class is renamed to MockAuthService to avoid any name collision.
 
-class AuthService {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
-  final FirestoreService _firestoreService = FirestoreService();
+// ignore_for_file: curly_braces_in_flow_control_structures
 
-  // Stream of auth state changes
-  Stream<User?> get authStateChanges => _auth.authStateChanges();
+import 'package:flutter/foundation.dart';
 
-  User? get currentUser => _auth.currentUser;
-  String? get currentUserId => _auth.currentUser?.uid;
+class MockUserModel {
+  final String uid;
+  final String name;
+  final String email;
+  final String? profilePicPath;
+  final String? resumePath;
 
-  // ─── Email / Password ────────────────────────────────────────────────────
+  const MockUserModel({
+    required this.uid,
+    required this.name,
+    required this.email,
+    this.profilePicPath,
+    this.resumePath,
+  });
 
-  Future<UserCredential> signUpWithEmail({
-    required String email,
-    required String password,
-    required String displayName,
-  }) async {
-    final credential = await _auth.createUserWithEmailAndPassword(
-      email: email,
-      password: password,
-    );
+  Map<String, dynamic> toMap() => {
+        'uid': uid,
+        'name': name,
+        'email': email,
+        'profilePicPath': profilePicPath,
+        'resumePath': resumePath,
+      };
 
-    // Update display name in Firebase Auth
-    await credential.user?.updateDisplayName(displayName);
-
-    // Create Firestore user document
-    final user = UserModel(
-      uid: credential.user!.uid,
-      displayName: displayName,
-      email: email,
-      createdAt: DateTime.now(),
-    );
-    await _firestoreService.createUser(user);
-
-    return credential;
-  }
-
-  Future<UserCredential> signInWithEmail({
-    required String email,
-    required String password,
-  }) async {
-    return await _auth.signInWithEmailAndPassword(
-      email: email,
-      password: password,
-    );
-  }
-
-  // ─── Google Sign-In ───────────────────────────────────────────────────────
-
-  Future<UserCredential?> signInWithGoogle() async {
-    final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-    if (googleUser == null) return null; // user cancelled
-
-    final GoogleSignInAuthentication googleAuth =
-        await googleUser.authentication;
-
-    final credential = GoogleAuthProvider.credential(
-      accessToken: googleAuth.accessToken,
-      idToken: googleAuth.idToken,
-    );
-
-    final userCredential = await _auth.signInWithCredential(credential);
-
-    // Create Firestore doc if this is a new user
-    if (userCredential.additionalUserInfo?.isNewUser ?? false) {
-      final user = UserModel(
-        uid: userCredential.user!.uid,
-        displayName: userCredential.user!.displayName ?? 'User',
-        email: userCredential.user!.email ?? '',
-        photoUrl: userCredential.user!.photoURL,
-        createdAt: DateTime.now(),
+  factory MockUserModel.fromMap(Map<String, dynamic> map) => MockUserModel(
+        uid: map['uid'] ?? '',
+        name: map['name'] ?? '',
+        email: map['email'] ?? '',
+        profilePicPath: map['profilePicPath'],
+        resumePath: map['resumePath'],
       );
-      await _firestoreService.createUser(user);
+}
+
+/// Legacy mock auth provider — NOT used by the running app.
+/// Kept only as a reference skeleton. The actual provider is
+/// lib/providers/auth_provider.dart (class AuthProvider).
+class MockAuthService extends ChangeNotifier {
+  // Singleton
+  static final MockAuthService _instance = MockAuthService._internal();
+  factory MockAuthService() => _instance;
+  MockAuthService._internal();
+
+  MockUserModel? _currentUser;
+  bool _isLoading = false;
+  String? _error;
+
+  MockUserModel? get currentUser => _currentUser;
+  bool get isLoading => _isLoading;
+  bool get isLoggedIn => _currentUser != null;
+  String? get error => _error;
+
+  Future<bool> signUp({
+    required String name,
+    required String email,
+    required String password,
+    String? profilePicPath,
+    String? resumePath,
+  }) async {
+    _setLoading(true);
+    _error = null;
+    try {
+      if (name.trim().isEmpty) throw Exception('Please enter your full name.');
+      if (!_isValidEmail(email)) throw Exception('Please enter a valid email.');
+      if (password.length < 6)
+        throw Exception('Password must be at least 6 characters.');
+
+      await Future.delayed(const Duration(seconds: 1));
+
+      _currentUser = MockUserModel(
+        uid: DateTime.now().millisecondsSinceEpoch.toString(),
+        name: name,
+        email: email,
+        profilePicPath: profilePicPath,
+        resumePath: resumePath,
+      );
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = e.toString().replaceFirst('Exception: ', '');
+      notifyListeners();
+      return false;
+    } finally {
+      _setLoading(false);
     }
-
-    return userCredential;
   }
 
-  // ─── Password Reset ───────────────────────────────────────────────────────
+  Future<bool> signIn({
+    required String email,
+    required String password,
+  }) async {
+    _setLoading(true);
+    _error = null;
+    try {
+      if (!_isValidEmail(email)) throw Exception('Please enter a valid email.');
+      if (password.isEmpty) throw Exception('Please enter your password.');
 
-  Future<void> sendPasswordResetEmail(String email) async {
-    await _auth.sendPasswordResetEmail(email: email);
+      await Future.delayed(const Duration(milliseconds: 900));
+
+      _currentUser = MockUserModel(
+        uid: 'demo-uid-001',
+        name: 'Demo User',
+        email: email,
+      );
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = e.toString().replaceFirst('Exception: ', '');
+      notifyListeners();
+      return false;
+    } finally {
+      _setLoading(false);
+    }
   }
-
-  // ─── Sign Out ─────────────────────────────────────────────────────────────
 
   Future<void> signOut() async {
-    await Future.wait([
-      _auth.signOut(),
-      _googleSignIn.signOut(),
-    ]);
+    _currentUser = null;
+    _error = null;
+    notifyListeners();
   }
 
-  // ─── Delete Account ───────────────────────────────────────────────────────
+  void clearError() {
+    _error = null;
+    notifyListeners();
+  }
 
-  Future<void> deleteAccount() async {
-    final uid = currentUserId;
-    if (uid == null) return;
-    await _firestoreService.deleteUser(uid);
-    await _auth.currentUser?.delete();
+  bool _isValidEmail(String email) {
+    return RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);
+  }
+
+  void _setLoading(bool val) {
+    _isLoading = val;
+    notifyListeners();
   }
 }

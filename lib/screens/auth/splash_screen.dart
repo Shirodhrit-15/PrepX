@@ -2,8 +2,8 @@
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:prepx/providers/auth_provider.dart';
 import 'package:provider/provider.dart';
-import '../../providers/App_auth_provider.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -22,7 +22,7 @@ class _SplashScreenState extends State<SplashScreen> {
   Future<void> _navigate() async {
     await Future.delayed(const Duration(seconds: 2));
 
-    final authProvider = context.read<AuthProvider>();
+    final authProvider = context.read<AppAuthProvider>();
 
     if (!mounted) return; // 🔥 IMPORTANT
 

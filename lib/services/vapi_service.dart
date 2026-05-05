@@ -22,7 +22,6 @@ class VapiService {
 
   final StreamController<VapiMessage> _messageController =
       StreamController<VapiMessage>.broadcast();
-
   final StreamController<VapiCallStatus> _statusController =
       StreamController<VapiCallStatus>.broadcast();
 
@@ -71,7 +70,7 @@ class VapiService {
             'difficulty': difficulty,
             'resumeContext': resumeContext ?? 'Not provided',
           },
-          'firstMessage': 'Hello! I\'m your PrepX AI interviewer today. Ready?',
+          'firstMessage': "Hello! I'm your PrepX AI interviewer today. Ready?",
         },
       });
 
@@ -111,14 +110,13 @@ class VapiService {
         case 'call-start':
           _emitStatus(VapiCallStatus.active);
           _safeAddMessage(
-            VapiMessage(type: type, content: data['callId']),
+            VapiMessage(type: type, content: data['callId'] as String?),
           );
           break;
 
         case 'transcript':
           final role = data['role'] as String?;
           final text = data['transcript'] as String? ?? '';
-
           if (text.isNotEmpty) {
             _transcript.add({'role': role ?? 'unknown', 'text': text});
             _safeAddMessage(
@@ -145,7 +143,7 @@ class VapiService {
     } catch (_) {}
   }
 
-  // ─── SAFE ADD METHODS (CRITICAL FIX) ───────────────────────────────────────
+  // ─── SAFE ADD METHODS ──────────────────────────────────────────────────────
   void _safeAddMessage(VapiMessage msg) {
     if (!_messageController.isClosed && !_isDisposed) {
       _messageController.add(msg);
@@ -169,24 +167,27 @@ class VapiService {
       } catch (_) {}
       _channel = null;
     }
-
     _emitStatus(VapiCallStatus.ended);
   }
 
-  // ─── DISPOSE (FIXED) ──────────────────────────────────────────────────────
-  Future<void> dispose() async {
+  // ─── DISPOSE ──────────────────────────────────────────────────────────────
+  // NOTE: This is NOT the ChangeNotifier dispose — it's a manual cleanup
+  // called explicitly from InterviewProvider.dispose() and reset().
+  void dispose() {
+    if (_isDisposed) return;
     _isDisposed = true;
 
+    // Close channel synchronously best-effort; don't await here.
     try {
-      await stopInterview();
+      _channel?.sink.close();
     } catch (_) {}
+    _channel = null;
 
     if (!_messageController.isClosed) {
-      await _messageController.close();
+      _messageController.close();
     }
-
     if (!_statusController.isClosed) {
-      await _statusController.close();
+      _statusController.close();
     }
   }
 

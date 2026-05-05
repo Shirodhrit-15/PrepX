@@ -22,6 +22,7 @@ class InterviewProvider extends ChangeNotifier {
   int _elapsedSeconds = 0;
   Timer? _timer;
 
+  // Live transcript buffer for UI display
   final List<Map<String, String>> _liveTranscript = [];
 
   InterviewPhase get phase => _phase;
@@ -39,7 +40,6 @@ class InterviewProvider extends ChangeNotifier {
   }
 
   // ─── Start Interview ──────────────────────────────────────────────────────
-
   Future<void> startInterview({
     required String userId,
     required String jobRole,
@@ -55,6 +55,7 @@ class InterviewProvider extends ChangeNotifier {
     final sessionId = _uuid.v4();
 
     try {
+      // 1. Create Firestore session record
       final session = SessionModel(
         sessionId: sessionId,
         userId: userId,
@@ -66,6 +67,7 @@ class InterviewProvider extends ChangeNotifier {
       await _firestoreService.createSession(session);
       _currentSession = session;
 
+      // 2. Start Vapi voice call
       await _vapiService.startInterview(
         jobRole: jobRole,
         domain: domain,
@@ -73,15 +75,16 @@ class InterviewProvider extends ChangeNotifier {
         resumeContext: resumeUrl,
       );
 
+      // 3. Listen to Vapi events
       _vapiService.statusStream.listen(_onVapiStatus);
       _vapiService.messages.listen(_onVapiMessage);
 
+      // 4. Update session status to active
       await _firestoreService.updateSessionStatus(
         sessionId,
         SessionStatus.active,
       );
       _currentSession = _currentSession!.copyWith(status: SessionStatus.active);
-
       _setPhase(InterviewPhase.active);
       _startTimer();
     } catch (e) {
@@ -95,25 +98,29 @@ class InterviewProvider extends ChangeNotifier {
   }
 
   // ─── End Interview ────────────────────────────────────────────────────────
-
   Future<void> endInterview() async {
     if (_currentSession == null) return;
+
     _stopTimer();
     _setPhase(InterviewPhase.analyzing);
 
     try {
+      // 1. Stop Vapi
       await _vapiService.stopInterview();
 
       final sessionId = _currentSession!.sessionId;
       final transcript = _vapiService.buildTranscriptString();
 
+      // 2. Update session as completed
       await _firestoreService.updateSessionStatus(
         sessionId,
         SessionStatus.completed,
         durationSeconds: _elapsedSeconds,
       );
 
-      await _apiService.analyzeTranscript(
+      // 3. Call Cloud Function → Gemini for analysis
+      // ignore: unused_local_variable
+      final analysisData = await _apiService.analyzeTranscript(
         sessionId: sessionId,
         userId: _currentSession!.userId,
         transcript: transcript,
@@ -122,6 +129,7 @@ class InterviewProvider extends ChangeNotifier {
         difficulty: _currentSession!.difficulty,
       );
 
+      // 4. Cloud Function already wrote to Firestore — just read the result
       _currentResult = await _firestoreService.getResult(sessionId);
       _setPhase(InterviewPhase.done);
     } catch (e) {
@@ -131,7 +139,6 @@ class InterviewProvider extends ChangeNotifier {
   }
 
   // ─── Vapi Event Handlers ──────────────────────────────────────────────────
-
   void _onVapiStatus(VapiCallStatus status) {
     if (status == VapiCallStatus.ended && _phase == InterviewPhase.active) {
       endInterview();
@@ -150,6 +157,7 @@ class InterviewProvider extends ChangeNotifier {
       });
       notifyListeners();
     } else if (msg.type == 'call-start' && msg.content != null) {
+      // Save vapiCallId to Firestore
       _firestoreService.updateSession(_currentSession!.sessionId, {
         'vapiCallId': msg.content,
       });
@@ -157,7 +165,6 @@ class InterviewProvider extends ChangeNotifier {
   }
 
   // ─── Timer ────────────────────────────────────────────────────────────────
-
   void _startTimer() {
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       _elapsedSeconds++;
@@ -171,7 +178,6 @@ class InterviewProvider extends ChangeNotifier {
   }
 
   // ─── Reset ────────────────────────────────────────────────────────────────
-
   void reset() {
     _stopTimer();
     _vapiService.dispose();
