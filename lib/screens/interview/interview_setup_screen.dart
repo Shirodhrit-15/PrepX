@@ -1,7 +1,6 @@
-// FIXED: removed unused firebase_auth import and AppAuthProvider alias
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/interview_provider.dart';
 import 'interview_screen.dart';
 
@@ -42,18 +41,17 @@ class _InterviewSetupScreenState extends State<InterviewSetupScreen> {
     }
 
     final auth = context.read<AuthProvider>();
-    // Read interview provider to ensure it exists in tree (no need to store)
     context.read<InterviewProvider>();
 
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) => InterviewScreen(
-          userId: auth.uid!,
+          userId: auth.user!.uid,
           jobRole: _roleCtrl.text.trim(),
           domain: _domain,
           difficulty: _difficulty,
-          resumeUrl: auth.userModel?.resumeUrl,
+          resumeUrl: null,
         ),
       ),
     );
@@ -70,18 +68,12 @@ class _InterviewSetupScreenState extends State<InterviewSetupScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Configure your interview',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-            ),
+            const Text('Configure your interview',
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
-            Text(
-              'Set your preferences and start practicing',
-              style: TextStyle(color: cs.onSurface.withValues(alpha: 0.6)),
-            ),
+            Text('Set your preferences and start practicing',
+                style: TextStyle(color: cs.onSurface.withValues(alpha: 0.6))),
             const SizedBox(height: 32),
-
-            // Job Role
             TextField(
               controller: _roleCtrl,
               textCapitalization: TextCapitalization.words,
@@ -92,8 +84,6 @@ class _InterviewSetupScreenState extends State<InterviewSetupScreen> {
               ),
             ),
             const SizedBox(height: 28),
-
-            // Domain
             const Text('Interview Domain',
                 style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
             const SizedBox(height: 12),
@@ -114,8 +104,6 @@ class _InterviewSetupScreenState extends State<InterviewSetupScreen> {
                   .toList(),
             ),
             const SizedBox(height: 28),
-
-            // Difficulty
             const Text('Difficulty',
                 style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
             const SizedBox(height: 12),
@@ -141,8 +129,6 @@ class _InterviewSetupScreenState extends State<InterviewSetupScreen> {
               }).toList(),
             ),
             const SizedBox(height: 40),
-
-            // Start button
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
@@ -158,8 +144,6 @@ class _InterviewSetupScreenState extends State<InterviewSetupScreen> {
               ),
             ),
             const SizedBox(height: 16),
-
-            // Info card
             Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
@@ -186,12 +170,6 @@ class _InterviewSetupScreenState extends State<InterviewSetupScreen> {
       ),
     );
   }
-}
-
-extension on AuthProvider {
-  get userModel => null;
-
-  get uid => null;
 }
 
 class _OptionChip extends StatelessWidget {
@@ -235,14 +213,12 @@ class _OptionChip extends StatelessWidget {
                     ? activeColor
                     : cs.onSurface.withValues(alpha: 0.5)),
             const SizedBox(width: 8),
-            Text(
-              label,
-              style: TextStyle(
-                fontWeight: selected ? FontWeight.bold : FontWeight.normal,
-                color: selected ? activeColor : cs.onSurface,
-                fontSize: 13,
-              ),
-            ),
+            Text(label,
+                style: TextStyle(
+                  fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+                  color: selected ? activeColor : cs.onSurface,
+                  fontSize: 13,
+                )),
           ],
         ),
       ),

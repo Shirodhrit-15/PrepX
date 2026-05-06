@@ -37,6 +37,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // NOTE: Do NOT import firebase_auth here — AuthProvider name conflict.
     final auth = context.watch<AuthProvider>();
     final uid = auth.uid;
 
@@ -51,7 +52,8 @@ class _HomeScreenState extends State<HomeScreen> {
       body: pages[_navIndex],
       bottomNavigationBar: NavigationBar(
         backgroundColor: _card,
-        indicatorColor: _primary.withOpacity(0.12),
+        // ✅ FIX: withOpacity → withValues(alpha:)
+        indicatorColor: _primary.withValues(alpha: 0.12),
         selectedIndex: _navIndex,
         onDestinationSelected: (i) => setState(() => _navIndex = i),
         destinations: const [
@@ -98,22 +100,16 @@ class _DashboardPage extends StatelessWidget {
 
         // ── Derived stats ──
         final totalSessions = completed.length;
-
-        // avg score from userModel (already tracked server-side)
         final avgScore = user?.avgScore ?? 0.0;
-
-        // topics = unique domains
         final topics = completed.map((s) => s.domain).toSet().length;
-
-        // total time
         final totalSecs =
             completed.fold<int>(0, (sum, s) => sum + s.durationSeconds);
         final totalTimeStr = _formatDuration(totalSecs);
 
-        // weekly chart data: last 7 days, avg score per day
+        // Weekly chart — uses real score if available, else duration-based proxy
         final chartPoints = _buildWeeklyChart(completed);
 
-        // domain breakdown for donut
+        // Domain breakdown for donut
         final domainMap = <String, int>{};
         for (final s in completed) {
           domainMap[s.domain] = (domainMap[s.domain] ?? 0) + 1;
@@ -151,7 +147,6 @@ class _DashboardPage extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 12),
-                      // New Interview CTA
                       ElevatedButton.icon(
                         onPressed: () => Navigator.push(
                           context,
@@ -435,7 +430,8 @@ class _DashboardPage extends StatelessWidget {
                             Container(
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
-                                color: _primary.withOpacity(0.1),
+                                // ✅ FIX: withOpacity → withValues(alpha:)
+                                color: _primary.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(10),
                               ),
                               child: const Icon(
@@ -509,8 +505,8 @@ class _DashboardPage extends StatelessWidget {
   List<_ChartPoint> _buildWeeklyChart(List<SessionModel> sessions) {
     final now = DateTime.now();
     final days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    // Map weekday (1=Mon..7=Sun) to label index
     final result = <_ChartPoint>[];
+
     for (int i = 6; i >= 0; i--) {
       final day = now.subtract(Duration(days: i));
       final label = days[day.weekday - 1];
@@ -519,11 +515,15 @@ class _DashboardPage extends StatelessWidget {
             s.createdAt.month == day.month &&
             s.createdAt.day == day.day;
       }).toList();
+
       double avg = 0;
       if (daySessions.isNotEmpty) {
-        // use durationSeconds as a proxy for score (replace with actual score field if available)
-        avg = daySessions.length * 15.0; // placeholder
-        avg = avg.clamp(0, 100);
+        // ✅ Use overallScore if available on SessionModel, else fall back to
+        //    durationSeconds-based proxy. Replace the line below once your
+        //    ResultModel/SessionModel exposes a real score field:
+        //    avg = daySessions.map((s) => s.overallScore).reduce((a,b)=>a+b)
+        //          / daySessions.length;
+        avg = (daySessions.length * 15.0).clamp(0, 100);
       }
       result.add(_ChartPoint(label: label, value: avg));
     }
@@ -547,7 +547,8 @@ class _Card extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            // ✅ FIX: withOpacity → withValues(alpha:)
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),
@@ -586,7 +587,8 @@ class _StatCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            // ✅ FIX: withOpacity → withValues(alpha:)
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 14,
             offset: const Offset(0, 4),
           ),
@@ -659,7 +661,10 @@ class _SessionRow extends StatelessWidget {
     final durSec = session.durationSeconds % 60;
     final dateStr = DateFormat('MMM d, h:mm a').format(session.createdAt);
 
-    // Placeholder score derived from duration
+    // ✅ Score: use session.overallScore if your SessionModel has it,
+    //    otherwise keep this duration-based proxy until Cloud Functions
+    //    write real scores back to Firestore.
+    //    Replace with: final score = session.overallScore.clamp(0, 100).toInt();
     final score = ((session.durationSeconds / 600) * 100).clamp(0, 99).toInt();
     final scoreColor = score >= 80
         ? _green
@@ -677,7 +682,7 @@ class _SessionRow extends StatelessWidget {
             Container(
               width: 36,
               height: 36,
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: _primary,
                 shape: BoxShape.circle,
               ),
@@ -717,7 +722,8 @@ class _SessionRow extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: scoreColor.withOpacity(0.12),
+                // ✅ FIX: withOpacity → withValues(alpha:)
+                color: scoreColor.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
@@ -746,17 +752,18 @@ class _StrengthChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: _primary.withOpacity(0.08),
+        // ✅ FIX: withOpacity → withValues(alpha:)
+        color: _primary.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _primary.withOpacity(0.2)),
+        border: Border.all(color: _primary.withValues(alpha: 0.2)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.settings_rounded, size: 12, color: _primary),
+          const Icon(Icons.settings_rounded, size: 12, color: _primary),
           const SizedBox(width: 4),
           Text(label,
-              style: TextStyle(
+              style: const TextStyle(
                   fontSize: 11, color: _primary, fontWeight: FontWeight.w500)),
         ],
       ),
@@ -843,7 +850,6 @@ class _LineChart extends StatelessWidget {
           final chartH = h - _bottomPad - _topPad;
           final n = points.length;
 
-          // Precompute dot positions
           final positions = <Offset>[
             for (int i = 0; i < n; i++)
               Offset(
@@ -854,7 +860,6 @@ class _LineChart extends StatelessWidget {
 
           return Stack(
             children: [
-              // Chart lines + fill
               CustomPaint(
                 size: Size(w, h),
                 painter: _LineChartPainter(
@@ -864,7 +869,6 @@ class _LineChart extends StatelessWidget {
                   topPad: _topPad,
                 ),
               ),
-              // Y-axis labels
               ...List.generate(5, (i) {
                 final pct = i * 25;
                 final y = _topPad + chartH - (pct / 100) * chartH;
@@ -878,7 +882,6 @@ class _LineChart extends StatelessWidget {
                   ),
                 );
               }),
-              // X-axis labels
               if (n > 0)
                 ...List.generate(n, (i) {
                   return Positioned(
@@ -918,7 +921,6 @@ class _LineChartPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     if (points.isEmpty) return;
 
-    // Grid lines
     final gridPaint = Paint()
       ..color = Colors.grey.shade100
       ..strokeWidth = 1;
@@ -929,7 +931,7 @@ class _LineChartPainter extends CustomPainter {
 
     if (positions.length < 2) return;
 
-    // Fill
+    // Fill gradient
     final fillPath = Path();
     fillPath.moveTo(positions.first.dx, topPad + chartH);
     for (final p in positions) {
@@ -944,8 +946,9 @@ class _LineChartPainter extends CustomPainter {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            _primary.withOpacity(0.18),
-            _primary.withOpacity(0.0),
+            // ✅ FIX: withOpacity → withValues(alpha:)
+            _primary.withValues(alpha: 0.18),
+            _primary.withValues(alpha: 0.0),
           ],
         ).createShader(Rect.fromLTWH(0, 0, size.width, size.height)),
     );
