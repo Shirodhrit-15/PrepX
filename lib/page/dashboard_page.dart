@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:prepx/asset/feedback.dart';
+import 'package:prepx/services/firestore_service.dart';
 import '../asset/interview_model.dart';
 import '../asset/interview_tile.dart';
 import '../asset/action_tile.dart';
 import 'interview_page.dart';
 
 class DashboardPage extends StatelessWidget {
-  const DashboardPage({super.key});
+  const DashboardPage(
+      {super.key,
+      required String uid,
+      required FirestoreService firestoreService});
 
   @override
   Widget build(BuildContext context) {
